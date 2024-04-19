@@ -230,20 +230,37 @@ class DockerInterface(JobGroup):
         """Pull docker image."""
         image = image or self.image
         arch = arch or self.sys_arch.supervisor
-
+        oimage = None
+        if self.sys_docker.config.registries_mirror:
+            oimage = image
+            matcher = IMAGE_WITH_HOST.match(image)
+            registry = None
+            # Custom registry
+            if matcher:
+                registry = matcher.group(1)
+            # If no match assume "dockerhub" as registry
+            elif DOCKER_HUB in self.sys_docker.config.registries_mirror:
+                registry = DOCKER_HUB
+            
+            if registry and registry in self.sys_docker.config.registries_mirror:
+                i2 = image.split("/", maxsplit=1)
+                registry_mirror = self.sys_docker.config.registries_mirror[registry]
+                image = f"{registry_mirror}/{i2[1]}"
         _LOGGER.info("Downloading docker image %s with tag %s.", image, version)
         try:
             if self.sys_docker.config.registries:
                 # Try login if we have defined credentials
                 await self._docker_login(image)
-
             # Pull new image
             docker_image = await self.sys_run_in_executor(
                 self.sys_docker.images.pull,
                 f"{image}:{version!s}",
                 platform=MAP_ARCH[arch],
             )
-
+            if oimage:
+                _LOGGER.info("Rename mirror image %s to %s.", image, oimage)
+                await self.sys_run_in_executor(docker_image.tag, oimage, version)
+                image = oimage
             # Validate content
             try:
                 await self._validate_trust(docker_image.id, image, version)

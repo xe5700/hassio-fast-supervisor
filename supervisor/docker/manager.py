@@ -20,6 +20,7 @@ import requests
 
 from ..const import (
     ATTR_REGISTRIES,
+    ATTR_REGISTRIES_MIRROR,
     DNS_SUFFIX,
     DOCKER_NETWORK,
     ENV_SUPERVISOR_CPU_RT,
@@ -94,6 +95,11 @@ class DockerConfig(FileConfiguration):
     def registries(self) -> dict[str, Any]:
         """Return credentials for docker registries."""
         return self._data.get(ATTR_REGISTRIES, {})
+    
+    @property
+    def registries_mirror(self) -> dict[str, str]:
+        """Return mirrors for docker registries."""
+        return self._data.get(ATTR_REGISTRIES_MIRROR, {})
 
 
 class DockerAPI:

@@ -31,6 +31,7 @@ from .const import (
     ATTR_PORTS,
     ATTR_PWNED,
     ATTR_REGISTRIES,
+    ATTR_REGISTRIES_MIRROR,
     ATTR_SESSION,
     ATTR_SESSION_DATA,
     ATTR_SESSION_DATA_USER,
@@ -175,7 +176,14 @@ SCHEMA_DOCKER_CONFIG = vol.Schema(
                     vol.Required(ATTR_PASSWORD): str,
                 }
             }
-        )
+        
+        ),
+        vol.Optional(ATTR_REGISTRIES_MIRROR, default=dict): vol.Schema(
+            {
+                vol.All(str, vol.Match(RE_REGISTRY)): vol.Match(RE_REGISTRY)
+            }
+        
+        ),
     }
 )
 
