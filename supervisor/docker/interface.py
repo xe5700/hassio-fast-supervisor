@@ -238,14 +238,16 @@ class DockerInterface(JobGroup):
             # Custom registry
             if matcher:
                 registry = matcher.group(1)
+                if registry in  self.sys_docker.config.registries_mirror:
+                    i2 = image.split("/", maxsplit=1)
+                    registry_mirror = self.sys_docker.config.registries_mirror[registry]
+                    image = f"{registry_mirror}/{i2[1]}"
             # If no match assume "dockerhub" as registry
             elif DOCKER_HUB in self.sys_docker.config.registries_mirror:
                 registry = DOCKER_HUB
-            
-            if registry and registry in self.sys_docker.config.registries_mirror:
-                i2 = image.split("/", maxsplit=1)
                 registry_mirror = self.sys_docker.config.registries_mirror[registry]
                 image = f"{registry_mirror}/{i2[1]}"
+            
         _LOGGER.info("Downloading docker image %s with tag %s.", image, version)
         try:
             if self.sys_docker.config.registries:
